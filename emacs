@@ -29,6 +29,11 @@
     ein                            ;; Emacs IPython Notebook
     ido-vertical-mode              ;; IDO vertical mode
     smex                           ;; IDO for M-x
+    use-package                    ;;
+    yaml-mode
+    projectile
+    latex-preview-pane
+    company-bibtex
     )
   )
 
@@ -82,7 +87,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(flycheck better-defaults pytest popup matlab-mode flymake-cppcheck elpy cython-mode cpputils-cmake ccc auctex)))
+   '(smex ido-vertical-mode ein flycheck elpy better-defaults material-theme)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -197,8 +202,83 @@
 
 
 ; avy-related
-;; (global-set-key (kbd "C-c a") 'avy-goto-chara)
 (global-set-key (kbd "M-g b") 'avy-goto-char-2)
 (global-set-key (kbd "M-g a") 'avy-goto-char-timer)
 
 (setq-default avy-timeout-seconds 0.5)  ; slow down to 1 sec
+
+
+;; ; add ghostscript to exec-path
+;; (setq exec-path (append exec-path '("/usr/local/bin/")))
+;; (setq exec-path (append exec-path '("/Library/TeX/texbin/")))
+
+
+; help AucTex find related binaries
+(setenv "PATH"
+         (concat
+          "/usr/local/bin/" ":" "/Library/TeX/texbin/" ":"
+
+          (getenv "PATH")))
+
+; forward/reverse search between PDF and Latex source
+(defun my/latex-buffer-setup ()
+  (TeX-source-correlate-mode)
+  (TeX-PDF-mode))
+
+(add-hook 'LaTeX-mode-hook 'my/latex-buffer-setup)
+(setq TeX-source-correlate-method 'synctex
+      TeX-view-program-list   ;; Use Skim, it's awesome
+      '(("Skim" "/Applications/Skim.app/Contents/SharedSupport/displayline -g -b %n %o %b"))
+      TeX-view-program-selection '((output-pdf "Skim"))
+      TeX-auto-save t
+      TeX-parse-self t
+      TeX-save-query nil
+      ;; TeX-master 'dwim
+      )
+;
+(set-face-attribute 'default nil :height 200)  ; font size
+
+(setq-default TeX-master "main") ; all master files called "main".
+
+;; (setq TeX-parse-self t
+;;       TeX-auto-regexp-list 'TeX-auto-full-regexp-list
+;;       TeX-auto-parse-length 999999)
+
+
+
+;; auto-complete for AucTex
+(require 'auto-complete)
+(add-to-list 'ac-modes 'latex-mode) ; beware of using 'LaTeX-mode instead
+(require 'ac-math) ; package should be installed first 
+(defun my-ac-latex-mode () ; add ac-sources for latex
+   (setq ac-sources
+         (append '(ac-source-math-unicode
+           ac-source-math-latex
+           ac-source-latex-commands)
+                 ac-sources)))
+(add-hook 'LaTeX-mode-hook 'my-ac-latex-mode)
+(setq ac-math-unicode-in-math-p t)
+(ac-flyspell-workaround) ; fixes a known bug of delay due to flyspell (if it is there)
+(add-to-list 'ac-modes 'org-mode) ; auto-complete for org-mode (optional)
+(require 'auto-complete-config) ; should be after add-to-list 'ac-modes and hooks
+(ac-config-default)
+;; (setq ac-auto-start nil)            ; if t starts ac at startup automatically
+(setq ac-auto-show-menu t)
+(global-auto-complete-mode t)
+
+
+(define-key ac-complete-mode-map "\C-n" 'ac-next)
+(define-key ac-complete-mode-map "\C-p" 'ac-previous)
+
+(setq ido-ignore-files '("\.cmake" "CMakeCache.txt"))
+
+(setq ido-ignore-files
+      (append ido-ignore-files '(".out" ".pdf" ".gz" ".log" "_region_*")))
+
+
+(setq ido-ignore-files
+      (append ido-ignore-files '(".out" ".pdf" ".gz" ".log" "_region_*" "auto/")))
+
+(setq ido-ignore-directories
+      (append ido-ignore-directories '("_region_*" "auto/")))
+
