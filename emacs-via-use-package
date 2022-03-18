@@ -1,0 +1,110 @@
+(require 'package)
+
+
+;; Adds the Melpa archive to the list of available repositories
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
+
+(add-to-list 'package-archives
+             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
+;; Initializes the package infrastructure
+(package-initialize)
+
+;; misc stuff
+(global-set-key (kbd "M-o")  'mode-line-other-buffer)
+
+
+;; If there are no archived package contents, refresh them
+(when (not package-archive-contents)
+  (package-refresh-contents))
+
+(use-package flycheck
+  :ensure t
+  )
+
+(use-package elpy
+  :ensure t
+  :requires flycheck
+  :config
+  (setq elpy-test-runner 'elpy-test-pytest-runner ; use pytest
+	elpy-rpc-backend "jedi"
+	elpy-modules (delq 'elpy-module-flymake elpy-modules)
+	)
+  (add-hook 'elpy-mode-hook 'flycheck-mode)
+  (elpy-enable)
+  )
+
+(setq
+ python-shell-interpreter "jupyter"
+ python-shell-interpreter-args "console --simple-prompt"
+ python-shell-prompt-detect-failure-warning nil)
+
+(use-package yasnippet-snippets
+  :ensure t
+  )
+
+(use-package yasnippet
+  :ensure t
+  :config
+  (setq yas-snippet-dirs
+	'("~/.emacs.d/snippets"
+	  "~/.emacs.d/elpa/elpy-20220220.2059/"  ; might need to change
+	  "~/.emacs.d/elpa/yasnippet-snippets-20220221.1234/snippets"  ; might need to change
+	  ))
+  (yas-global-mode 1)
+  )
+
+
+(use-package ido-vertical-mode
+  :ensure t
+  :requires ido
+  :config
+  (ido-vertical-mode 1)
+  (setq ido-vertical-define-keys 'C-n-and-C-p-only)
+  )
+
+(use-package ido
+  :ensure t
+  :config
+  (setq ido-enable-flex-matching nil
+	ido-create-new-buffer 'always
+	ido-everywhere t)
+  (add-to-list 'ido-ignore-files "\.bak")
+  (add-to-list 'ido-ignore-files "\.log")
+  (add-to-list 'ido-ignore-files ".venv")
+  (ido-mode 1)
+  )
+
+
+(use-package smex
+  :ensure t
+  :init (smex-initialize)
+  :bind
+  ("M-x" . smex))
+
+(use-package yaml-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+  )
+
+(use-package projectile
+  :ensure t
+  :config
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+  )
+
+
+(use-package material-theme
+  :ensure t
+  )
+
+(use-package ein
+  :ensure t
+  )
+
+;; need to install matlab-mode manually
+;; package-install does not work for now
+(add-to-list 'load-path "/home/xiaoh1/code/matlab-emacs-src")
+(load-library "matlab-load")
